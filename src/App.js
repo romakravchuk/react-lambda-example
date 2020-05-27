@@ -1,26 +1,40 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { useAsync } from "react-async";
+import SetContent from "./hooks/setContent";
+
+function createConfigForAPI() {
+    const headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        Accept: 'application/json',
+    };
+
+    return { headers };
+}
+
+const loadChart = async () => {
+    const config = createConfigForAPI();
+    const res = await fetch(`https://dxejpmt59g.execute-api.us-east-1.amazonaws.com/dev/hello`, config)
+    if (!res.ok) throw new Error(res.statusText)
+    return res.json()
+}
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    const { run, data, error, isPending } = useAsync({deferFn: loadChart});
+    if (error) return `Something went wrong: ${error.message}`;
+
+    return (
+        <div className="container">
+            <div className="buttonContainer">
+                <button type='button' className="button" onClick={run}>Press To Load Chart</button>
+            </div>
+
+            {isPending && 'Loading...'}
+            {data && <SetContent chartData={data} />}
+
+        </div>
+    );
 }
 
 export default App;
